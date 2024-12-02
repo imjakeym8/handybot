@@ -25,7 +25,7 @@ while True:
     for each_update in updates:
         present_data = {"groupusername":None,"groupname":None,"chat_id":None,"message_id":None,"date":None,"user":None,"user_id":None,"username":None,"text":None}
         each_message = each_update["message"]
-        if each_message["chat"]["type"] == "supergroup":
+        if each_message["chat"]["type"] == "supergroup" and each_message["from"].get("username", "").endswith('ph'):
             present_data["groupusername"] = each_message["chat"]["username"]
             present_data["groupname"] = each_message["chat"]["title"] #chat required
             present_data["chat_id"] = each_message["chat"]["id"] #chat,id required
@@ -33,31 +33,33 @@ while True:
             present_data["date"] = strftime("%I:%M%p %m/%d/%y", localtime(each_message["date"])) #required
             present_data["user"] = each_message["from"]["first_name"] #first_name required
             present_data["user_id"] = each_message["from"]["id"] #id required
-            present_data["username"] = each_message["from"]["username"] if each_message["from"].get("username") else None
-            present_data["text"] = each_message["text"] if each_message.get("text") else None
+            present_data["username"] = each_message["from"]["username"] #already guarantees i have the username
+            present_data["text"] = each_message["text"] if each_message.get("text") else "This user must have only sent a Sticker, GIF, an image/video or any file\\._" 
             offset = each_update["update_id"] + 1
+        
+            msg_user_display = f"[__{escape_markdown_v2(present_data['user'])}__](https://t\\.me/{escape_markdown_v2(present_data['username'])})" if present_data.get("username") else escape_markdown_v2(present_data["user"])
+            msg = (
+                f"*Chat:* [__{escape_markdown_v2(present_data['groupname'])}__](https://t\\.me/{escape_markdown_v2(present_data['groupusername'])}) \\(ID:{escape_markdown_v2(str(present_data['chat_id']))}\\)\n"
+                f"*User:* {msg_user_display} \\(ID:{escape_markdown_v2(str(present_data['user_id']))}\\)\n"
+                f"*Time:* {escape_markdown_v2(present_data['date'])}\n"
+                f"[*Message:*](https://t\\.me/{escape_markdown_v2(present_data['groupusername'])}/{escape_markdown_v2(str(present_data['message_id']))})\n"
+                f"{escape_markdown_v2(present_data['text'])}"
+                )
 
-        msg_user_display = f"[__{escape_markdown_v2(present_data['user'])}__](https://t\\.me/{escape_markdown_v2(present_data['username'])})" if present_data.get("username") else escape_markdown_v2(present_data["user"])
-        not_text = f"_This user must have only sent a Sticker, GIF, an image/video or any file\\._"
-        msg = (
-            f"*Chat:* [__{escape_markdown_v2(present_data['groupname'])}__](https://t\\.me/{escape_markdown_v2(present_data['groupusername'])}) \\(ID:{escape_markdown_v2(str(present_data['chat_id']))}\\)\n"
-            f"*User:* {msg_user_display} \\(ID:{escape_markdown_v2(str(present_data['user_id']))}\\)\n"
-            f"*Time:* {escape_markdown_v2(present_data['date'])}\n"
-            f"[*Message:*](https://t\\.me/{escape_markdown_v2(present_data['groupusername'])}/{escape_markdown_v2(str(present_data['message_id']))})\n"
-            f"{escape_markdown_v2(present_data['text']) if present_data.get('text') else not_text}"
-            )
+            payload = {
+                "chat_id": jayceeph,
+                "text": msg,
+                "parse_mode": "MarkdownV2",
+                "disable_web_page_preview": True
+            }
+            post_response = requests.post(posturl, data=payload)
 
-        payload = {
-            "chat_id": jayceeph,
-            "text": msg,
-            "parse_mode": "MarkdownV2",
-            "disable_web_page_preview": True
-        }
-        post_response = requests.post(posturl, data=payload)
+            if post_response.ok:
+                print("Message sent successfully!")
+            else:
+                print("Failed to send message:", post_response.text)
 
-        if post_response.ok:
-            print("Message sent successfully!")
         else:
-            print("Failed to send message:", post_response.text)
+            pass
     
     sleep(50)
