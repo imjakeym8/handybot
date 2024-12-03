@@ -62,4 +62,4 @@ while True:
         else:
             pass
     
-    sleep(50)
+    sleep(5)
