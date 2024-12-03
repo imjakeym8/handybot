@@ -3,7 +3,7 @@ from time import localtime, strftime, sleep
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(dotenv_path='/home/cloudshell-user/.env')
 bot_token = os.getenv("TG_HANDYBOT")
 jayceeph = os.getenv("TG_JAYCEEPH")
 
