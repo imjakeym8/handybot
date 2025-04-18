@@ -1,6 +1,8 @@
 from telethon import TelegramClient
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
+from cryptography.fernet import Fernet
+
 
 import os
 from dotenv import load_dotenv
@@ -14,12 +16,20 @@ import re
 
 load_dotenv()
 gc = gspread.service_account(filename='C:/Users/ACER/OneDrive/Documents/GitHub/handybot/mysa.json')
-api_id = os.getenv('TELETHON_API')
-api_hash = os.getenv('TELETHON_HASH')
-tg_token = os.getenv('DREW_HANDYBOT_TG')
+
+dk = os.getenv("DKEY")
+f = Fernet(dk)
+
+t1 = os.getenv('TELETHON_1')
+api_id = f.decrypt(t1).decode()
+t2 = os.getenv('TELETHON_2')
+api_hash = f.decrypt(t2).decode()
+tt = os.getenv('HANDYBOT')
+tg_token = f.decrypt(tt).decode()
+
 mongo_uri = os.getenv('MONGODB_URI')
-combotapi = os.getenv('COMBOT_SHAMAEPH_API')
 client = MongoClient(mongo_uri)
+
 db = client.Metrics
 coll = db.Projects
 
@@ -42,7 +52,7 @@ async def post_metrics(update: Update, context: ContextTypes.DEFAULT_TYPE):
         params = {}
         jan1 = 1735689600
         params["chat_id"] = document["chat_id"]
-        params["api_key"] = combotapi
+        params["api_key"] = f.decrypt(document["point"]).decode()
         if document["last_updated"] < jan1: #Jan. 1, 2025 0:00 UTC
             params["from"] = jan1
             params["to"] = jan1 + 604799
@@ -123,7 +133,7 @@ async def get_member_count(update: Update, context: ContextTypes.DEFAULT_TYPE): 
         if not client.is_connected():
             await client.connect()
 
-        group = await client.get_entity('https://t.me/aitechagentchat')
+        group = await client.get_entity(f"https://t.me/{context.args[0]}")
         member_count = await client.get_participants(group, limit=0)
         print(f"Total members:{member_count.total}")
         await update.message.reply_text(f"{member_count.total}")
