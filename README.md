@@ -13,3 +13,9 @@
 > Working data entry automation utilizing Google Sheets API, and gspread
 > Uses combot API via requests
 > Gets total members of a private group with telethon
+
+## v0.2.0-alpha.1250420
+
+**Features**
+> Added monthly data entry automation
+> Improved the weekly logic
