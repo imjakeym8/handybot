@@ -19,3 +19,8 @@
 **Features**
 > Added monthly data entry automation
 > Improved the weekly logic
+
+## v0.2.0-alpha.2250421
+
+**Hotfixes**
+> Added restart script system (unsure if it is completely working)
