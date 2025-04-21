@@ -250,8 +250,17 @@ async def logout(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
         print(f"Error: {e}")
-    
+
+import sys
+import time
+
+def restart_script():
+    print("Restarting in 3 seconds..")
+    time.sleep(3)
+    os.execv(sys.executable, ['python'] + sys.argv) 
+
 if __name__ == '__main__':
+    try:
         app = ApplicationBuilder().token(tg_token).build()
         logout_handler = CommandHandler('mustlogout', logout)
         get_member_count_handler = CommandHandler('get_member_count', get_member_count)
@@ -264,3 +273,7 @@ if __name__ == '__main__':
 
         print("Running now... ✅")
         app.run_polling()
+        
+    except Exception as e:
+        print(f"Bot crashed: {e}")
+        restart_script()
