@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv(dotenv_path='/home/cloudshell-user/.env')
-bot_token = os.getenv("TG_HANDYBOT")
+bot_token = os.getenv("TG_MODWATCHER")
 jayceeph = os.getenv("TG_JAYCEEPH")
 
 def escape_markdown_v2(text):

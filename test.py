@@ -24,7 +24,7 @@ f = Fernet(dk)
 
 with open(".env", "a") as file:
     key = f.encrypt(alts.encode())
-    file.write(f"\nTELETHON_3 = {key.decode()}")
+    file.write(f"\nTELETHON_4 ='{key.decode()}'")
 
 another_key = f.decrypt(key).decode()
 print(another_key)
