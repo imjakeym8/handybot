@@ -39,7 +39,7 @@ async def post_metrics(update: Update, context: ContextTypes.DEFAULT_TYPE, handl
     if not client.is_connected():
         await client.connect()
 
-    if not context.args and handle is not None:
+    if not context.args and handle is not None: #This is for main.py
         document = coll.find_one({"handle":handle})
         if not document:
             await update.message.reply_text(f"Error: No document found for handle '{handle}'")
@@ -120,10 +120,6 @@ async def post_metrics(update: Update, context: ContextTypes.DEFAULT_TYPE, handl
         try:
             worksheet.update([result], row)
             coll.update_one({"handle":handle},{'$push':{"results.weekly":{result[0]:{"messages":result[1],"adm":result[2],"active_users":result[3],"dau":result[4],"active_hour":result[5],"active_day":result[6],"members":result[7]}}},'$set':{"last_updated":next_week,"last_rows":row}})
-            try:
-                await update.message.reply_text("Metrics sent ✅")
-            except Exception as e:
-                print(f"Metrics sent on {document['sheet']}✅")
         except Exception as e:
             print(f"Update failed: {e}")
 
@@ -211,7 +207,7 @@ async def post_metrics(update: Update, context: ContextTypes.DEFAULT_TYPE, handl
             try:
                 await update.message.reply_text("Metrics sent ✅")
             except Exception as e:
-                print(f"Metrics sent on {document['sheet']}✅")
+                print(f"There was an error: {e}")
         except Exception as e:
             print(f"Update failed: {e}")
 
@@ -222,7 +218,7 @@ async def post_monthly_metrics(update: Update, context: ContextTypes.DEFAULT_TYP
     if not client.is_connected():
         await client.connect()
 
-    if not context.args and handle is not None:
+    if not context.args and handle is not None: #This is for main.py
         document = coll.find_one({"handle":handle})
         if not document:
             await update.message.reply_text(f"Error: No document found for handle '{handle}'")
@@ -306,11 +302,6 @@ async def post_monthly_metrics(update: Update, context: ContextTypes.DEFAULT_TYP
         try:
             worksheet.update([result[1:]], row) #It will still proceed if nothing was printed, check admin access if service account was added
             coll.update_one({"handle":handle},{'$push':{"results.monthly":{result[0]:{"messages":result[1],"adm":result[2],"active_users":result[3],"dau":result[4],"active_hour":result[5],"active_day":result[6],"members":result[7]}}},'$set':{"last_month_updated":next_month,"last_monthly_rows":row}})
-            try:
-                await update.message.reply_text("Metrics sent ✅")
-            except Exception as e:
-                print(f"Metrics sent on {document['sheet']}✅")
-
         except Exception as e:
             print(f"Update failed: {e}")    
 
@@ -401,8 +392,7 @@ async def post_monthly_metrics(update: Update, context: ContextTypes.DEFAULT_TYP
             try:
                 await update.message.reply_text("Metrics sent ✅")
             except Exception as e:
-                print(f"Metrics sent on {document['sheet']}✅")
-
+                print(f"There was an error: {e}")
         except Exception as e:
             print(f"Update failed: {e}")
 
