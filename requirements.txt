@@ -11,11 +11,13 @@ attrs==24.2.0
 babel==2.16.0
 beautifulsoup4==4.12.3
 bleach==6.1.0
+blinker==1.9.0
 bs4==0.0.2
 cachetools==5.5.0
 certifi==2024.8.30
 cffi==1.17.1
 charset-normalizer==3.3.2
+click==8.1.8
 colorama==0.4.6
 comm==0.2.2
 cryptography==44.0.2
@@ -27,6 +29,7 @@ discord.py==2.4.0
 dnspython==2.6.1
 executing==2.1.0
 fastjsonschema==2.20.0
+Flask==3.1.0
 fqdn==1.5.1
 frozenlist==1.4.1
 google-api-core==2.24.0
@@ -46,6 +49,7 @@ ipykernel==6.29.5
 ipython==8.29.0
 ipywidgets==8.1.5
 isoduration==20.11.0
+itsdangerous==2.2.0
 jedi==0.19.1
 Jinja2==3.1.4
 json5==0.9.25
@@ -72,6 +76,7 @@ nbclient==0.10.0
 nbconvert==7.16.4
 nbformat==5.10.4
 nest-asyncio==1.6.0
+ngrok==1.4.0
 notebook==7.2.2
 notebook_shim==0.2.4
 oauth2client==4.1.3
@@ -93,6 +98,7 @@ pyasn1_modules==0.4.1
 pycparser==2.22
 Pygments==2.18.0
 pymongo==4.8.0
+pyngrok==7.2.5
 pyparsing==3.2.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
@@ -128,5 +134,6 @@ wcwidth==0.2.13
 webcolors==24.8.0
 webencodings==0.5.1
 websocket-client==1.8.0
+Werkzeug==3.1.3
 widgetsnbextension==4.0.13
 yarl==1.11.1
