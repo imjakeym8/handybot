@@ -2,3 +2,5 @@
 *.session*
 *.json
 *.pyc
+test.py
+test2.py
