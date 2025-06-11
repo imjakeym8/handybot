@@ -37,55 +37,81 @@ admincoll = db.AdminMetrics
 
 client = TelegramClient("local_session", api_id, api_hash)
 
-async def track_message(update: Update, context: ContextTypes.DEFAULT_TYPE, link:str): #update: Update, context: ContextTypes.DEFAULT_TYPE
-    patt = r"^(?:https?://)?t\.me/(?:c/)?(?:(?P<handle>[a-zA-Z0-9_]+)|(?P<group_id>\d+))(?:/\d+)?/(?P<msg_id>\d+)/?$" # Caters to Private="https://t.me/c/1234/1/1234" and Public="t.me/handle/1234"
-    match = re.match(patt, link)
-    if match:
-        if match.group("handle"):
-            handle = match.group("handle") 
-        elif match.group("group_id"):
-            group_id = match.group("group_id")  # Group ID
+async def track_message(update: Update, context: ContextTypes.DEFAULT_TYPE): #update: Update, context: ContextTypes.DEFAULT_TYPE
+    if not client.is_connected():
+        await client.connect()
+
+    handle = None
+    group_id = None
+
+    try:
+        if context.args:
+            link = context.args[0]
+            patt = r"^(?:https?://)?t\.me/(?:c/)?(?:(?P<group_id>\d+)|(?P<handle>[a-zA-Z0-9_]+))(?:/\d+)?/(?P<msg_id>\d+)/?$" # Caters to Private="https://t.me/c/1234/1/1234" and Public="t.me/handle/1234"
+            match = re.match(patt, link)
         else:
-            return "Error: Invalid link format"
-        message_id = match.group("msg_id")  # Message ID
-    else:
-        return "Invalid link format"
-    
-    async with client:
-        if handle:
-            identifier = handle
-            group = await client.get_entity(identifier)
-        elif group_id:
-            identifier = group_id
-            group = await client.get_input_entity(identifier)
+            await update.message.reply_text("Please provide a message link.")
+            return
+            
+        if match:
+            if match.group("handle"):
+                handle = match.group("handle") 
+            elif match.group("group_id"):
+                group_id = match.group("group_id")  # Group ID
+            else:
+                await update.message.reply_text("Invalid link format (1)")
+                return
+            message_id = match.group("msg_id")  # Message ID
+        else:
+            await update.message.reply_text("Invalid link format (2)")
+            return 
 
-        raw_stats = await client(GetMessageReactionsListRequest(peer=group, id=message_id, limit=100)) #Count
-        stats = raw_stats.to_dict()    
-        raw_message = await client.get_messages(group, ids=message_id)
-        message = raw_message.to_dict()        
+        async with client:
+            if handle is not None:
+                identifier = handle
+                group = await client.get_entity(identifier)
+            elif group_id is not None:
+                identifier = int(group_id)
+                group = await client.get_input_entity(identifier)
+            else:
+                await update.message.reply_text("Invalid link format (3)")
+                return 
 
-        #Reactions
-        reactions = list({each["reaction"]["emoticon"] for each in stats["reactions"]})
+            raw_stats = await client(GetMessageReactionsListRequest(peer=group, id=int(message_id), limit=100)) #Count
+            stats = raw_stats.to_dict()    
+            raw_message = await client.get_messages(group, ids=int(message_id))
+            message = raw_message.to_dict()        
 
-        #Reactors
-        reactors = []
-        for each in stats["users"]:
-            result = {"user_id":each["id"],"username":each["username"]}
-            if result not in reactors:
-                reactions.append(result)
+            #Reactions
+            reactions = list({each["reaction"]["emoticon"] for each in stats["reactions"]})
 
-        #Time Posted
-        utc8_datetime = message["date"] + timedelta(hours=8)
-        time_posted = utc8_datetime.strftime("%m/%d/%y %I:%M")
+            #Reactors
+            reactors = []
+            for each in stats["users"]:
+                result = {"user_id":each["id"],"username":each["username"]}
+                if result not in reactors:
+                    reactors.append(result)
 
-        #Deadline (let's say 24 hours)
-        utc8add24 = message["date"] + timedelta(hours=32)
-        deadline = utc8add24.strftime("%m/%d/%y %I:%M")
+            #Time Posted
+            utc8_datetime = message["date"] + timedelta(hours=8)
+            time_posted = utc8_datetime.strftime("%m/%d/%y %I:%M")
 
-        if handle:
-            admincoll.update_one({"handle": handle},{'$push':{"results.message_stats":{"link":link,"reactions":reactions,"count":stats["count"],"reactors":reactors,"time_posted":time_posted,"deadline":deadline}}})            
-        elif group_id:
-            admincoll.update_one({"group_id":group_id},{'$push':{"results.message_stats":{"link":link,"reactions":reactions,"count":stats["count"],"reactors":reactors,"time_posted":time_posted,"deadline":deadline}}})
+            #Deadline (let's say 24 hours)
+            utc8add24 = message["date"] + timedelta(hours=32)
+            deadline = utc8add24.strftime("%m/%d/%y %I:%M")
+
+            if handle is not None:
+                admincoll.update_one({"handle": handle},{'$push':{"results.message_stats":{"link":link,"reactions":reactions,"count":stats["count"],"reactors":reactors,"time_posted":time_posted,"deadline":deadline}}})            
+            elif group_id is not None:
+                admincoll.update_one({"group_id":int(group_id)},{'$push':{"results.message_stats":{"link":link,"reactions":reactions,"count":stats["count"],"reactors":reactors,"time_posted":time_posted,"deadline":deadline}}})
+            else:
+                await update.message.reply_text("Invalid link format (4)")
+                return
+            
+            print("Done")
+
+    except Exception as e:
+        await update.message.reply_text(f"Error: {e}")
 
 async def post_metrics(update: Update, context: ContextTypes.DEFAULT_TYPE, handle=None):
     if not client.is_connected():

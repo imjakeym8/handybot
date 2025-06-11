@@ -11,7 +11,7 @@ t1 = os.getenv('TELETHON_1')
 api_id = f.decrypt(t1).decode()
 t2 = os.getenv('TELETHON_2')
 api_hash = f.decrypt(t2).decode()
-session_name = 'session' 
+session_name = 'local_session' 
 tt = os.getenv('HANDYBOT')
 tg_token = f.decrypt(tt).decode()
 
