@@ -21,7 +21,7 @@ t1 = os.getenv('TELETHON_1')
 api_id = f.decrypt(t1).decode()
 t2 = os.getenv('TELETHON_2')
 api_hash = f.decrypt(t2).decode()
-tt = os.getenv('TOOLBOT')
+tt = os.getenv('TOOLBOT') #Make sure you have this key
 tg_token = f.decrypt(tt).decode()
 
 mongo_uri = os.getenv('MONGODB_URI')
@@ -32,9 +32,15 @@ admincoll = db.AdminMetrics
 
 client = TelegramClient("local_session", api_id, api_hash)
 
-async def track_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not client.is_connected():
-        await client.connect()
+async def track_message(update: Update, context: ContextTypes.DEFAULT_TYPE): #Requires a link and the detected handle to be on MongoDB
+    try:
+        if update.effective_chat.type != "private":
+            return
+        if not client.is_connected():
+            await client.connect()
+
+    except Exception as e:
+        await update.message.reply_text(f"Error: {e}")
 
     handle = None
     group_id = None
@@ -106,12 +112,46 @@ async def track_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
 
+async def get_member_count(update: Update, context: ContextTypes.DEFAULT_TYPE): # It's now working!
+    try:
+        if update.effective_chat.type != "private":
+            return
+        if not client.is_connected():
+            await client.connect()
 
+        group = await client.get_entity(f"https://t.me/{context.args[0]}")
+        member_count = await client.get_participants(group, limit=0)
+        print(f"Total members:{member_count.total}")
+        await update.message.reply_text(f"{member_count.total}")
+
+    except Exception as e:
+        await update.message.reply_text(f"Error: {e}")
+        print(f"Error: {e}")
+
+async def logout(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        if update.effective_chat.type != "private":
+            return
+        if not client.is_connected():
+            await client.connect()
+
+        await client.log_out()  # It logs out and deletes the session file!
+        await update.message.reply_text("✅ Successfully logged out.")
+        print("✅ Logged out and session deleted.")
+
+    except Exception as e:
+        await update.message.reply_text(f"Error: {e}")
+        print(f"Error: {e}")
 
 if __name__ == '__main__':
     app = ApplicationBuilder().token(tg_token).build()
     track_message_handler = CommandHandler('track_message', track_message)
     app.add_handler(track_message_handler)
+
+    logout_handler = CommandHandler('mustlogout', logout)
+    get_member_count_handler = CommandHandler('get_member_count', get_member_count)
+    app.add_handler(logout_handler)
+    app.add_handler(get_member_count_handler)
 
     print("Running now... ✅")
     app.run_polling()
